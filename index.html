@@ -150,108 +150,181 @@
     </div>
   </div>
 
-  <script>
-    // ======= LIFF 設定 =======
-    const LIFF_ID = "2008163833-ZvEpP2VG"; // 例：165xxxxxx-xxxxxxxx
-    // ===========================
+ <script>
+  // ======= LIFF 設定 =======
+  const LIFF_ID = "2008163833-ZvEpP2VG"; // ← 用你的 LIFF App ID
+  // ===========================
 
-    const els = {
-      form: document.getElementById('assistForm'),
-      group: document.getElementById('group'),
-      n1: document.getElementById('name1'),
-      n2: document.getElementById('name2'),
-      n3: document.getElementById('name3'),
-      n4: document.getElementById('name4'),
-      liffUserId: document.getElementById('liff_user_id'),
-      idtokenSub: document.getElementById('idtoken_sub'),
-      status: document.getElementById('status'),
-      submitBtn: document.getElementById('submitBtn'),
-      resetBtn: document.getElementById('resetBtn'),
-      userPill: document.getElementById('userPill'),
-      displayName: document.getElementById('display_name'),
-      fillerName: document.getElementById('filler_name')
+  const els = {
+    form: document.getElementById('assistForm'),
+    group: document.getElementById('group'),
+    n1: document.getElementById('name1'),
+    n2: document.getElementById('name2'),
+    n3: document.getElementById('name3'),
+    n4: document.getElementById('name4'),
+    liffUserId: document.getElementById('liff_user_id'),
+    idtokenSub: document.getElementById('idtoken_sub'),
+    status: document.getElementById('status'),
+    submitBtn: document.getElementById('submitBtn'),
+    resetBtn: document.getElementById('resetBtn'),
+    userPill: document.getElementById('userPill'),
+    displayName: document.getElementById('display_name'),
+    fillerName: document.getElementById('filler_name')
+  };
+
+  // ======= 小工具與快取 =======
+  const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 小時
+  const keyOf = (sub) => `liff_profile_${sub}`;
+
+  const readCache = (sub) => {
+    try {
+      const raw = localStorage.getItem(keyOf(sub));
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      if (!obj.updatedAt || Date.now() - obj.updatedAt > CACHE_TTL_MS) return null;
+      return obj;
+    } catch { return null; }
+  };
+  const writeCache = (sub, data) => {
+    try { localStorage.setItem(keyOf(sub), JSON.stringify({ ...data, updatedAt: Date.now() })); } catch {}
+  };
+  const withTimeout = (p, ms=1500) =>
+    Promise.race([ p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms)) ]);
+
+  function paintUser({ name='', userId='', sub='' } = {}) {
+    if (name) {
+      els.displayName.value = name;
+      if (els.fillerName) {
+        els.fillerName.value = name;
+        els.fillerName.setAttribute('disabled','');
+        els.fillerName.setAttribute('tabindex','-1');
+      }
+      els.userPill.style.display = 'inline-flex';
+      els.userPill.textContent = name;
+    }
+    if (userId) els.liffUserId.value = userId;
+    if (sub) els.idtokenSub.value = sub;
+  }
+
+  function lock(disabled) {
+    els.submitBtn.disabled = disabled;
+    els.resetBtn.disabled = disabled;
+  }
+  function toast(msg) { els.status.innerHTML = `<span class="error">${escapeHtml(msg)}</span>`; }
+  function ok(msg)    { els.status.innerHTML = `<span class="ok">${escapeHtml(msg)}</span>`; }
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  }
+
+  // ======= 初始化：ID Token 先顯示 → 背景補 getProfile =======
+  (async function init() {
+    try {
+      els.status.textContent = '正在初始化 LIFF…';
+      await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: true });
+
+      if (!liff.isLoggedIn()) {
+        els.status.textContent = '尚未登入，導向 LINE 登入…';
+        liff.login({ redirectUri: location.href });
+        return;
+      }
+
+      // 1) 先用 ID Token（最快）
+      const decoded = liff.getDecodedIDToken?.() || {};
+      const sub = decoded.sub || '';
+      const tokenName = decoded.name || '';
+      let firstPaint = false;
+
+      if (sub) {
+        const cached = readCache(sub);
+        if (cached?.name) {
+          paintUser({ name: cached.name, userId: cached.userId || '', sub });
+          firstPaint = true;
+        } else if (tokenName) {
+          paintUser({ name: tokenName, sub });
+          firstPaint = true;
+        } else {
+          // 骨架
+          els.userPill.style.display = 'inline-flex';
+          els.userPill.textContent = '載入中…';
+          els.idtokenSub.value = sub;
+        }
+      }
+
+      els.status.textContent = 'LIFF 就緒，正在取得個人資料…';
+
+      // 2) 背景取 getProfile（1.5s 逾時不阻塞 UI）
+      try {
+        const profile = await withTimeout(liff.getProfile(), 1500);
+        const name   = profile?.displayName || tokenName || '';
+        const userId = profile?.userId || '';
+
+        paintUser({ name, userId, sub });
+        if (sub && name) writeCache(sub, { name, userId });
+
+        els.status.textContent = '個人資料已載入。';
+      } catch (e) {
+        if (!firstPaint) {
+          if (tokenName) {
+            paintUser({ name: tokenName, sub });
+            els.status.textContent = '已使用暫存名稱。';
+          } else {
+            toast('取得名稱較慢，請稍後再試');
+          }
+        } else {
+          els.status.textContent = '已使用快取資料。';
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      toast('LIFF 初始化失敗：' + (err?.message || err));
+    }
+  })();
+
+  // ======= 送出（防連點 + 驗證） =======
+  els.form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const names = [
+      (els.n1.value || '').trim(),
+      (els.n2.value || '').trim(),
+      (els.n3.value || '').trim(),
+      (els.n4.value || '').trim(),
+    ].filter(Boolean);
+
+    const payload = {
+      group: els.group.value,
+      names,
+      display_name: els.displayName.value,
+      liff_user_id: els.liffUserId.value,
+      idtoken_sub: els.idtokenSub.value,
+      submitted_at: new Date().toISOString()
     };
 
-    // 初始化 LIFF
-    (async function init() {
-      try {
-        els.status.textContent = '正在初始化 LIFF…';
-        await liff.init({ liffId: LIFF_ID });
+    if (!payload.group)        return toast('請先選擇所屬單位');
+    if (payload.names.length === 0) return toast('至少填寫 1 筆施助名單');
 
-        if (!liff.isLoggedIn()) {
-          els.status.textContent = '尚未登入，導向 LINE 登入…';
-          liff.login();
-          return;
-        }
-
-        const profile = await liff.getProfile();
-        const decoded = liff.getDecodedIDToken?.() || {};
-
-        els.displayName.value = profile.displayName || '';
-        els.liffUserId.value = profile.userId || '';
-        if (els.fillerName) { els.fillerName.value = profile.displayName || ''; els.fillerName.setAttribute('disabled',''); els.fillerName.setAttribute('tabindex','-1'); }
-        els.idtokenSub.value = decoded.sub || '';
-
-        els.userPill.style.display = 'inline-flex';
-        els.userPill.textContent = (profile.displayName ? `${profile.displayName}` : '已登入使用者');
-        els.status.textContent = 'LIFF 就緒。';
-      } catch (err) {
-        console.error(err);
-        els.status.innerHTML = `<span class="error">LIFF 初始化失敗：${escapeHtml(err.message || err)}</span>`;
-      }
-    })();
-
-    // 表單送出（GAS 版本：直接呼叫伺服器端 Apps Script）
-    els.form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const payload = {
-        group: els.group.value,
-        names: [
-          (els.n1.value || '').trim(),
-          (els.n2.value || '').trim(),
-          (els.n3.value || '').trim(),
-          (els.n4.value || '').trim(),
-        ].filter(Boolean),
-        display_name: els.displayName.value,
-        liff_user_id: els.liffUserId.value,
-        idtoken_sub: els.idtokenSub.value,
-        submitted_at: new Date().toISOString()
-      };
-
-      if (!payload.group) { return toast('請先選擇所屬單位'); }
-      if (payload.names.length === 0) { return toast('至少填寫 1 筆施助名單'); }
-
-      lock(true);
-      els.status.textContent = '送出中…';
-      google.script.run.withSuccessHandler((res) => {
-        els.status.innerHTML = `<span class="ok">送出成功！${res && res.message ? escapeHtml(res.message) : ''}</span>`;
-        els.n2.value = '';
-        els.n3.value = '';
-        els.n4.value = '';
+    lock(true);
+    els.status.textContent = '送出中…';
+    google.script.run
+      .withSuccessHandler((res) => {
+        ok('送出成功！' + (res?.message || ''));
+        // 清空可選欄位
+        els.n2.value = ''; els.n3.value = ''; els.n4.value = '';
         lock(false);
-      }).withFailureHandler((err) => {
-        els.status.innerHTML = `<span class="error">送出失敗：${escapeHtml(err && err.message ? err.message : err)}</span>`;
+      })
+      .withFailureHandler((err) => {
+        toast('送出失敗：' + (err?.message || err));
         lock(false);
-      }).submitFormToSheet(payload);
-    });
+      })
+      .submitFormToSheet(payload);
+  });
 
-    els.resetBtn.addEventListener('click', () => {
-      els.form.reset();
-      els.status.textContent = '已清空欄位。';
-    });
+  // 清空
+  els.resetBtn.addEventListener('click', () => {
+    els.form.reset();
+    els.status.textContent = '已清空欄位。';
+  });
+</script>
 
-    function lock(disabled) {
-      els.submitBtn.disabled = disabled;
-      els.resetBtn.disabled = disabled;
-    }
-
-    function toast(msg) { els.status.innerHTML = `<span class=\"error\">${escapeHtml(msg)}</span>`; }
-
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>"']/g, s => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-      })[s]);
-    }
-  </script>
   </body>
 </html>
