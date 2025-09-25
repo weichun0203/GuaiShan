@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>施助名單提交表單</title>
+  <title>龜山支會施助名單</title>
   <!-- LIFF v2 SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
@@ -87,13 +87,21 @@
   <div class="card">
     <div class="header">
       <div>
-        <div class="title">施助名單提交表單</div>
-        <div class="subtitle">內嵌於 LINE LIFF，小組別＋四筆名單，一鍵送出</div>
+        <div class="title">施助名單</div>
+        <div class="subtitle">提供給傳教士拜訪</div>
       </div>
       <div id="userPill" class="userpill" style="display:none"></div>
     </div>
 
     <form id="assistForm">
+       <div class="row">
+        <label>
+          填寫者姓名（自動帶入）
+          <input id="filler_name" type="text" placeholder="將自動帶入 LINE 使用者名稱" disabled tabindex="-1" />
+          <div class="helper">自動填入你的 LINE 名稱，為了避免錯誤紀錄<strong>不可編輯</strong>。</div>
+        </label>
+      </div>
+      
       <div class="row">
         <label>
           所屬單位（下拉）
@@ -103,14 +111,6 @@
             <option value="慈助會">慈助會</option>
           </select>
           <div class="helper">必填；用於分類</div>
-        </label>
-      </div>
-
-      <div class="row">
-        <label>
-          填寫者姓名（自動帶入）
-          <input id="filler_name" type="text" placeholder="將自動帶入 LINE 使用者名稱" disabled tabindex="-1" />
-          <div class="helper">此欄位會自動填入你的 LINE 顯示名稱，為了避免錯誤紀錄而<strong>不可編輯</strong>。</div>
         </label>
       </div>
 
