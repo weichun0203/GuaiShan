@@ -1,330 +1,97 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>龜山支會施助名單</title>
-  <!-- LIFF v2 SDK -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LIFF → GAS 測試最小表單</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <style>
-    :root {
-      --bg: #0f172a;      /* slate-900 */
-      --card: #111827;    /* gray-900 */
-      --text: #e5e7eb;    /* gray-200 */
-      --muted: #9ca3af;   /* gray-400 */
-      --brand: #22c55e;   /* green-500 */
-      --brand-2: #16a34a; /* green-600 */
-      --danger: #ef4444;  /* red-500 */
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      background: radial-gradient(1200px 800px at 10% 10%, rgba(34,197,94,0.15), transparent 40%),
-                  radial-gradient(1000px 800px at 90% 20%, rgba(99,102,241,0.12), transparent 40%),
-                  var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-    }
-    .card {
-      width: 100%;
-      max-width: 680px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-      border: 1px solid rgba(255,255,255,0.08);
-      backdrop-filter: blur(8px);
-      border-radius: 20px;
-      padding: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    }
-    .header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    .title { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
-    .subtitle { color: var(--muted); font-size: 13px; }
-    form { display: grid; gap: 14px; margin-top: 12px; }
-    label { font-size: 14px; color: var(--text); }
-    select, input[type="text"] {
-      width: 100%;
-      padding: 12px 14px;
-      background: rgba(255,255,255,0.07);
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 12px;
-      outline: none;
-    }
-    select:focus, input[type="text"]:focus { border-color: rgba(34,197,94,0.6); box-shadow: 0 0 0 3px rgba(34,197,94,0.15); }
-    .row { display: grid; gap: 10px; grid-template-columns: 1fr; }
-    .helper { font-size: 12px; color: var(--muted); }
-    .actions { display: flex; gap: 10px; margin-top: 8px; }
-    button {
-      flex: 1 1 auto;
-      padding: 12px 14px; border: 0; border-radius: 12px; font-weight: 700; cursor: pointer;
-    }
-    .primary { background: var(--brand); color: #0b0f19; }
-    .primary:hover { background: var(--brand-2); }
-    .ghost { background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,0.15); }
-    .status { margin-top: 12px; font-size: 14px; }
-    .error { color: var(--danger); }
-    .ok { color: var(--brand); }
-    .userpill {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 6px 10px; border-radius: 999px;
-      background: rgba(34,197,94,0.08);
-      border: 1px solid rgba(34,197,94,0.25);
-      font-size: 12px; color: var(--text);
-    }
-    .muted { color: var(--muted); }
-    @media (min-width: 640px) {
-      .row.two { grid-template-columns: 1fr 1fr; }
-    }
-  </style>
 </head>
 <body>
-  <div class="card">
-    <div class="header">
-      <div>
-        <div class="title">施助名單</div>
-        <div class="subtitle">提供給傳教士拜訪</div>
-      </div>
-      <div id="userPill" class="userpill" style="display:none"></div>
-    </div>
+  <h3>最小表單（GitHub → GAS）</h3>
 
-    <form id="assistForm">
-       <div class="row">
-        <label>
-          填寫者姓名（自動帶入）
-          <input id="filler_name" type="text" placeholder="將自動帶入 LINE 使用者名稱" disabled tabindex="-1" />
-          <div class="helper">自動填入你的 LINE 名稱，為了避免錯誤紀錄<strong>不可編輯</strong>。</div>
-        </label>
-      </div>
-      
-      <div class="row">
-        <label>
-          所屬單位（下拉）
-          <select id="group" required>
-            <option value="" disabled selected>請選擇</option>
-            <option value="長定組">長定組</option>
-            <option value="慈助會">慈助會</option>
-          </select>
-          <div class="helper">必填；用於分類</div>
-        </label>
-      </div>
+  <div id="me">載入中…</div>
 
-      <div class="row two">
-        <label>施助名單1
-          <input id="name1" type="text" placeholder="請輸入" required />
-        </label>
-        <label>施助名單2
-          <input id="name2" type="text" placeholder="請輸入" />
-        </label>
-      </div>
-
-      <div class="row two">
-        <label>施助名單3
-          <input id="name3" type="text" placeholder="請輸入" />
-        </label>
-        <label>施助名單4
-          <input id="name4" type="text" placeholder="請輸入" />
-        </label>
-      </div>
-
-      <!-- 隱藏欄位：自動寫入 LIFF 的使用者識別 -->
-      <input id="display_name" type="hidden" />
-      <input id="liff_user_id" type="hidden" />
-      <input id="idtoken_sub" type="hidden" />
-
-      <div class="actions">
-        <button type="button" class="ghost" id="resetBtn">清空</button>
-        <button type="submit" class="primary" id="submitBtn">送出</button>
-      </div>
-
-      <div id="status" class="status muted">尚未送出。</div>
-    </form>
-
-    <div class="helper" style="margin-top:10px">
-      建議：在 LIFF Console 勾選 <code>profile</code> 權限；部署前請把下方 <code>LIFF_ID</code> 與 <code>ENDPOINT</code> 換成你的設定。
-    </div>
+  <div>
+    <label>所屬單位：
+      <select id="group">
+        <option value="" selected disabled>請選擇</option>
+        <option>長定組</option>
+        <option>慈助會</option>
+      </select>
+    </label>
   </div>
 
- <script>
-  // ======= LIFF 設定 =======
-  const LIFF_ID = "2008163833-ZvEpP2VG"; // ← 用你的 LIFF App ID
-  // ===========================
+  <div>
+    <label>施助名單1：<input id="name1" /></label>
+    <label>施助名單2：<input id="name2" /></label>
+    <label>施助名單3：<input id="name3" /></label>
+    <label>施助名單4：<input id="name4" /></label>
+  </div>
 
-  const els = {
-    form: document.getElementById('assistForm'),
-    group: document.getElementById('group'),
-    n1: document.getElementById('name1'),
-    n2: document.getElementById('name2'),
-    n3: document.getElementById('name3'),
-    n4: document.getElementById('name4'),
-    liffUserId: document.getElementById('liff_user_id'),
-    idtokenSub: document.getElementById('idtoken_sub'),
-    status: document.getElementById('status'),
-    submitBtn: document.getElementById('submitBtn'),
-    resetBtn: document.getElementById('resetBtn'),
-    userPill: document.getElementById('userPill'),
-    displayName: document.getElementById('display_name'),
-    fillerName: document.getElementById('filler_name')
-  };
+  <button id="send" disabled>送出</button>
+  <p id="status">尚未送出</p>
 
-  // ======= 小工具與快取 =======
-  const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 小時
-  const keyOf = (sub) => `liff_profile_${sub}`;
+  <script>
+    // ← 換成你的 LIFF App ID 與 GAS exec 網址
+    const LIFF_ID = '2008163833-WOE8qe5b';
+    const GAS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwf8sf0Ll9i33m46qBRtBbLJ6yN-xwol90fLf4Zn553j3KnSKgekggq9KIqw2ZFLhEm/exec';
 
-  const readCache = (sub) => {
-    try {
-      const raw = localStorage.getItem(keyOf(sub));
-      if (!raw) return null;
-      const obj = JSON.parse(raw);
-      if (!obj.updatedAt || Date.now() - obj.updatedAt > CACHE_TTL_MS) return null;
-      return obj;
-    } catch { return null; }
-  };
-  const writeCache = (sub, data) => {
-    try { localStorage.setItem(keyOf(sub), JSON.stringify({ ...data, updatedAt: Date.now() })); } catch {}
-  };
-  const withTimeout = (p, ms=1500) =>
-    Promise.race([ p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms)) ]);
+    const el = (id) => document.getElementById(id);
+    const S = el('status');
 
-  function paintUser({ name='', userId='', sub='' } = {}) {
-    if (name) {
-      els.displayName.value = name;
-      if (els.fillerName) {
-        els.fillerName.value = name;
-        els.fillerName.setAttribute('disabled','');
-        els.fillerName.setAttribute('tabindex','-1');
-      }
-      els.userPill.style.display = 'inline-flex';
-      els.userPill.textContent = name;
-    }
-    if (userId) els.liffUserId.value = userId;
-    if (sub) els.idtokenSub.value = sub;
-  }
+    // 這些值會在 init 後填好
+    const me = { display_name: '', liff_user_id: '', idtoken_sub: '' };
 
-  function lock(disabled) {
-    els.submitBtn.disabled = disabled;
-    els.resetBtn.disabled = disabled;
-  }
-  function toast(msg) { els.status.innerHTML = `<span class="error">${escapeHtml(msg)}</span>`; }
-  function ok(msg)    { els.status.innerHTML = `<span class="ok">${escapeHtml(msg)}</span>`; }
-  function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
-  }
-
-  // ======= 初始化：ID Token 先顯示 → 背景補 getProfile =======
-  (async function init() {
-    try {
-      els.status.textContent = '正在初始化 LIFF…';
-      await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: true });
-
-      if (!liff.isLoggedIn()) {
-        els.status.textContent = '尚未登入，導向 LINE 登入…';
-        liff.login({ redirectUri: location.href });
-        return;
-      }
-
-      // 1) 先用 ID Token（最快）
-      const decoded = liff.getDecodedIDToken?.() || {};
-      const sub = decoded.sub || '';
-      const tokenName = decoded.name || '';
-      let firstPaint = false;
-
-      if (sub) {
-        const cached = readCache(sub);
-        if (cached?.name) {
-          paintUser({ name: cached.name, userId: cached.userId || '', sub });
-          firstPaint = true;
-        } else if (tokenName) {
-          paintUser({ name: tokenName, sub });
-          firstPaint = true;
-        } else {
-          // 骨架
-          els.userPill.style.display = 'inline-flex';
-          els.userPill.textContent = '載入中…';
-          els.idtokenSub.value = sub;
-        }
-      }
-
-      els.status.textContent = 'LIFF 就緒，正在取得個人資料…';
-
-      // 2) 背景取 getProfile（1.5s 逾時不阻塞 UI）
+    (async () => {
       try {
-        const profile = await withTimeout(liff.getProfile(), 1500);
-        const name   = profile?.displayName || tokenName || '';
-        const userId = profile?.userId || '';
+        S.textContent = '初始化 LIFF…';
+        await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: true });
+        if (!liff.isLoggedIn()) return liff.login({ redirectUri: location.href });
 
-        paintUser({ name, userId, sub });
-        if (sub && name) writeCache(sub, { name, userId });
+        const decoded = liff.getDecodedIDToken?.() || {};
+        me.idtoken_sub = decoded.sub || '';
 
-        els.status.textContent = '個人資料已載入。';
+        const profile = await liff.getProfile();
+        me.display_name = profile?.displayName || '';
+        me.liff_user_id = profile?.userId || '';
+
+        el('me').textContent = `你是：${me.display_name} (${me.liff_user_id || '無 userId'})`;
+        el('send').disabled = false;
+        S.textContent = '就緒';
       } catch (e) {
-        if (!firstPaint) {
-          if (tokenName) {
-            paintUser({ name: tokenName, sub });
-            els.status.textContent = '已使用暫存名稱。';
-          } else {
-            toast('取得名稱較慢，請稍後再試');
-          }
-        } else {
-          els.status.textContent = '已使用快取資料。';
-        }
+        S.textContent = 'LIFF 初始化失敗：' + (e.message || e);
+        console.error(e);
       }
-    } catch (err) {
-      console.error(err);
-      toast('LIFF 初始化失敗：' + (err?.message || err));
-    }
-  })();
+    })();
 
-  // ======= 送出（防連點 + 驗證） =======
-  els.form.addEventListener('submit', (e) => {
-    e.preventDefault();
+    el('send').addEventListener('click', async () => {
+      const payload = {
+        group: el('group').value,
+        names: [el('name1').value, el('name2').value, el('name3').value, el('name4').value]
+          .map(s => (s||'').trim()).filter(Boolean),
+        display_name: me.display_name,
+        liff_user_id: me.liff_user_id,
+        idtoken_sub: me.idtoken_sub,
+        submitted_at: new Date().toISOString()
+      };
 
-    const names = [
-      (els.n1.value || '').trim(),
-      (els.n2.value || '').trim(),
-      (els.n3.value || '').trim(),
-      (els.n4.value || '').trim(),
-    ].filter(Boolean);
+      if (!payload.group) { S.textContent = '請選擇所屬單位'; return; }
+      if (payload.names.length === 0) { S.textContent = '至少填 1 筆名單'; return; }
 
-    const payload = {
-      group: els.group.value,
-      names,
-      display_name: els.displayName.value,
-      liff_user_id: els.liffUserId.value,
-      idtoken_sub: els.idtokenSub.value,
-      submitted_at: new Date().toISOString()
-    };
-
-    if (!payload.group)        return toast('請先選擇所屬單位');
-    if (payload.names.length === 0) return toast('至少填寫 1 筆施助名單');
-
-    lock(true);
-    els.status.textContent = '送出中…';
-    google.script.run
-      .withSuccessHandler((res) => {
-        ok('送出成功！' + (res?.message || ''));
-        // 清空可選欄位
-        els.n2.value = ''; els.n3.value = ''; els.n4.value = '';
-        lock(false);
-      })
-      .withFailureHandler((err) => {
-        toast('送出失敗：' + (err?.message || err));
-        lock(false);
-      })
-      .submitFormToSheet(payload);
-  });
-
-  // 清空
-  els.resetBtn.addEventListener('click', () => {
-    els.form.reset();
-    els.status.textContent = '已清空欄位。';
-  });
-</script>
-
-  </body>
+      S.textContent = '送出中…';
+      try {
+        // ★ 重點：no-cors（前端拿不到回應是正常的）
+        await fetch(GAS_ENDPOINT, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        S.textContent = '已送出（前端無法讀回應，請到 Sheet 查）';
+      } catch (e) {
+        S.textContent = '送出失敗：' + (e.message || e);
+      }
+    });
+  </script>
+</body>
 </html>
