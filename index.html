@@ -325,24 +325,6 @@
     els.status.textContent = '已清空欄位。';
   });
 
-   //GAS
-       const GAS_ENDPOINT = 'https://script.google.com/macros/s/xxxxx/exec'; // 你的 exec
-    // ...
-    const payload = { /* 你的 group / names / display_name / liff_user_id / idtoken_sub ... */ };
-    
-    try {
-      await fetch(GAS_ENDPOINT, {
-        method: 'POST',
-        mode: 'no-cors',           // 關鍵：避開 CORS 預檢
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      // 注意：no-cors 下拿不到 response 狀態，這裡只能「盲判成功」
-      statusEl.textContent = '已送出（GitHub 版無法讀回應，請到 Sheet 查）';
-    } catch (e) {
-      statusEl.textContent = '送出失敗：' + e;
-    }
-
 </script>
 
   </body>
