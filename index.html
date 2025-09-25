@@ -1,265 +1,36 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>施助名單提交表單</title>
-
-  <!-- LIFF v2 SDK -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>陪課表（LIFF 橋接）</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
-  <style>
-    :root {
-      --bg: #0f172a;      /* slate-900 */
-      --card: #111827;    /* gray-900 */
-      --text: #e5e7eb;    /* gray-200 */
-      --muted: #9ca3af;   /* gray-400 */
-      --brand: #22c55e;   /* green-500 */
-      --brand-2: #16a34a; /* green-600 */
-      --danger: #ef4444;  /* red-500 */
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      background:
-        radial-gradient(1200px 800px at 10% 10%, rgba(34,197,94,0.15), transparent 40%),
-        radial-gradient(1000px 800px at 90% 20%, rgba(99,102,241,0.12), transparent 40%),
-        var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-    }
-    .card {
-      width: 100%;
-      max-width: 680px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-      border: 1px solid rgba(255,255,255,0.08);
-      backdrop-filter: blur(8px);
-      border-radius: 20px;
-      padding: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    }
-    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .title { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
-    .subtitle { color: var(--muted); font-size: 13px; }
-    form { display: grid; gap: 14px; margin-top: 12px; }
-    label { font-size: 14px; color: var(--text); }
-    select, input[type="text"] {
-      width: 100%;
-      padding: 12px 14px;
-      background: rgba(255,255,255,0.07);
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 12px;
-      outline: none;
-    }
-    select:focus, input[type="text"]:focus {
-      border-color: rgba(34,197,94,0.6);
-      box-shadow: 0 0 0 3px rgba(34,197,94,0.15);
-    }
-    .row { display: grid; gap: 10px; grid-template-columns: 1fr; }
-    .helper { font-size: 12px; color: var(--muted); }
-    .actions { display: flex; gap: 10px; margin-top: 8px; }
-    button { flex: 1 1 auto; padding: 12px 14px; border: 0; border-radius: 12px; font-weight: 700; cursor: pointer; }
-    .primary { background: var(--brand); color: #0b0f19; }
-    .primary:hover { background: var(--brand-2); }
-    .ghost { background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,0.15); }
-    .status { margin-top: 12px; font-size: 14px; }
-    .error { color: var(--danger); }
-    .ok { color: var(--brand); }
-    .userpill {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 6px 10px; border-radius: 999px;
-      background: rgba(34,197,94,0.08);
-      border: 1px solid rgba(34,197,94,0.25);
-      font-size: 12px; color: var(--text);
-    }
-    .muted { color: var(--muted); }
-    @media (min-width: 640px) {
-      .row.two { grid-template-columns: 1fr 1fr; }
-    }
-  </style>
 </head>
 <body>
-  <div class="card">
-    <div class="header">
-      <div>
-        <div class="title">施助名單提交表單</div>
-        <div class="subtitle">每周各組織請提供4位名單</div>
-      </div>
-      <div id="userPill" class="userpill" style="display:none"></div>
-    </div>
+<script>
+(async () => {
+  try {
+    await liff.init({ liffId: "YOUR_LIFF_ID" }); // 後台建立後取得
+    if (!liff.isLoggedIn()) { liff.login(); return; }
 
-    <form id="assistForm">
-      <div class="row">
-        <label>
-          填寫者姓名（自動帶入）
-          <input id="filler_name" type="text" placeholder="將自動帶入 LINE 使用者名稱" disabled tabindex="-1" />
-          <div class="helper">自動填入LINE 顯示名稱，避免錯誤紀錄<strong>不可編輯</strong>。</div>
-        </label>
-      </div>
-      <div class="row">
-        <label>
-          所屬單位（下拉）
-          <select id="group" required>
-            <option value="" disabled selected>請選擇</option>
-            <option value="長定組">長定組</option>
-            <option value="慈助會">慈助會</option>
-          </select>
-          <div class="helper">必填；用於分類</div>
-        </label>
-      </div>
+    const profile = await liff.getProfile();         // 取得 LINE 名字
+    const name = encodeURIComponent(profile.displayName);
 
-      <div class="row two">
-        <label>施助名單1
-          <input id="name1" type="text" placeholder="請輸入" required />
-        </label>
-        <label>施助名單2
-          <input id="name2" type="text" placeholder="請輸入" />
-        </label>
-      </div>
+    // 你的 Google 表單「預填 URL」 + 陪課者欄位的 entry ID
+    const formBase = "https://docs.google.com/forms/d/e/xxxxxxxxxxxxxxxxxxxx/viewform?usp=pp_url";
+    const entryHelper = "entry.1234567890"; // ← 換成你的陪課者欄位 entry ID
 
-      <div class="row two">
-        <label>施助名單3
-          <input id="name3" type="text" placeholder="請輸入" />
-        </label>
-        <label>施助名單4
-          <input id="name4" type="text" placeholder="請輸入" />
-        </label>
-      </div>
+    // 如果你也想預填「上課人」，可以再加一個 entry.xxx
+    // const student = new URLSearchParams(location.search).get("student") || "";
+    // const entryStudent = "entry.2222222222";
 
-      <!-- 隱藏欄位：自動寫入 LIFF 的使用者識別 -->
-      <input id="display_name" type="text" />
-      <input id="liff_user_id" type="text" />
-
-      <div class="actions">
-        <button type="button" class="ghost" id="resetBtn">清空</button>
-        <button type="submit" class="primary" id="submitBtn">送出</button>
-      </div>
-
-      <div id="status" class="status muted">尚未送出。</div>
-    </form>
-  </div>
-
-  <script>
-    // ======= LIFF 設定 =======
-    const LIFF_ID = "2008163833-WOE8qe5b"; // 例：165xxxxxx-xxxxxxxx
-    // ===========================
-
-    const els = {
-      form: document.getElementById('assistForm'),
-      group: document.getElementById('group'),
-      n1: document.getElementById('name1'),
-      n2: document.getElementById('name2'),
-      n3: document.getElementById('name3'),
-      n4: document.getElementById('name4'),
-      liffUserId: document.getElementById('liff_user_id'),
-      status: document.getElementById('status'),
-      submitBtn: document.getElementById('submitBtn'),
-      resetBtn: document.getElementById('resetBtn'),
-      userPill: document.getElementById('userPill'),
-      displayName: document.getElementById('display_name'),
-    };
-
-    // 初始化 LIFF
-    (async function init() {
-      try {
-        els.status.textContent = '正在初始化 LIFF…';
-        await liff.init({ liffId: LIFF_ID });
-        withLoginOnExternalBrowser: true
-
-        if (!liff.isLoggedIn()) {
-          els.status.textContent = '尚未登入，導向 LINE 登入…';
-          liff.login();
-          return;
-        }
-
-        const profile = await liff.getProfile();
-        const decoded = liff.getDecodedIDToken?.() || {};
-
-        els.displayName.value = profile.displayName || '';
-        els.liffUserId.value = profile.userId || '';
-        if (els.fillerName) {
-          els.fillerName.value = profile.displayName || '';
-          els.fillerName.setAttribute('disabled','');
-          els.fillerName.setAttribute('tabindex','-1');
-        }
-        els.idtokenSub.value = decoded.sub || '';
-
-        els.userPill.style.display = 'inline-flex';
-        els.userPill.textContent = profile.displayName || '已登入使用者';
-
-        els.status.textContent = 'LIFF 就緒。';
-      } catch (err) {
-        console.error(err);
-        els.status.innerHTML = `<span class="error">LIFF 初始化失敗：${escapeHtml(err.message || err)}</span>`;
-      }
-    })();
-
-    // 表單送出（GAS 版本：直接呼叫伺服器端 Apps Script）
-    els.form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const payload = {
-        group: els.group.value,
-        names: [
-          (els.n1.value || '').trim(),
-          (els.n2.value || '').trim(),
-          (els.n3.value || '').trim(),
-          (els.n4.value || '').trim(),
-        ].filter(Boolean),
-        display_name: els.displayName.value,
-        liff_user_id: els.liffUserId.value,
-        submitted_at: new Date().toISOString()
-      };
-
-      if (!payload.group) { return toast('請先選擇所屬單位'); }
-      if (payload.names.length === 0) { return toast('至少填寫 1 筆施助名單'); }
-
-      lock(true);
-      els.status.textContent = '送出中…';
-
-      google.script.run
-        .withSuccessHandler((res) => {
-          els.status.innerHTML = `<span class="ok">送出成功！${res && res.message ? escapeHtml(res.message) : ''}</span>`;
-          els.n2.value = '';
-          els.n3.value = '';
-          els.n4.value = '';
-          lock(false);
-        })
-        .withFailureHandler((err) => {
-          els.status.innerHTML = `<span class="error">送出失敗：${escapeHtml(err && err.message ? err.message : err)}</span>`;
-          lock(false);
-        })
-        .submitFormToSheet(payload);
-    });
-
-    els.resetBtn.addEventListener('click', () => {
-      els.form.reset();
-      els.status.textContent = '已清空欄位。';
-    });
-
-    function lock(disabled) {
-      els.submitBtn.disabled = disabled;
-      els.resetBtn.disabled = disabled;
-    }
-
-    function toast(msg) {
-      els.status.innerHTML = `<span class="error">${escapeHtml(msg)}</span>`;
-    }
-
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>"']/g, s => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-      })[s]);
-    }
-  </script>
+    const target = `${formBase}&${entryHelper}=${name}`;
+    location.replace(target); // 導向 Google 表單
+  } catch (e) {
+    document.body.innerHTML = "<p>載入失敗，請重新開啟。</p>";
+    console.error(e);
+  }
+})();
+</script>
 </body>
 </html>
